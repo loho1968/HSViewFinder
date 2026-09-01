@@ -11,6 +11,10 @@
     {
       "name": "EntryAbility_label",
       "value": "label"
+    },
+    {
+      "name": "permission_camera",
+      "value": "用于提供实时取景和镜头视场模拟"
     }
   ]
 }

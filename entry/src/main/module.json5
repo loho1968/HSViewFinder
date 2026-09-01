@@ -11,6 +11,17 @@
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:main_pages",
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.CAMERA",
+        "reason": "$string:permission_camera",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ]
+        }
+      }
+    ],
     "abilities": [
       {
         "name": "EntryAbility",
