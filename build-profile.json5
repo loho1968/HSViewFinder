@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "storeFile": "./signing/lohoapp.p12",
+          "storePassword": "000000186598312ADE59D2713A755D4B6E24D205B47C966074E048E971BD73E9240329B00575121E",
+          "keyAlias": "lohoappkey",
+          "keyPassword": "0000001826FD87661E4E14D9E637D9379FED5657CB819327EFB8496955FA839C8EC36E55002A71E7",
+          "signAlg": "SHA256withECDSA",
+          "profile": "./signing/HSViewFinderDebug.p7b",
+          "certpath": "./signing/roamly.cer"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
@@ -18,10 +32,21 @@
     ],
     "buildModeSet": [
       {
-        "name": "debug",
+        "name": "debug"
       },
       {
         "name": "release"
+      }
+    ],
+    "capabilities": [
+      {
+        "bundleName": "com.loho.app",
+        "config": [
+          {
+            "name": "Map Kit",
+            "capability": "com.huawei.service.mapkit"
+          }
+        ]
       }
     ]
   },
