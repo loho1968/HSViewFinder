@@ -5,6 +5,7 @@
 **/build
 /.hvigor
 /.codegraph
+/.codex
 .cxx
 /.clangd
 /.clang-format
