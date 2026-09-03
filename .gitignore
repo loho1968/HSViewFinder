@@ -12,3 +12,7 @@
 **/.test
 /.appanalyzer
 /signing/
+.DS_Store
+**/.DS_Store
+.DS_Store
+entry/.DS_Store
