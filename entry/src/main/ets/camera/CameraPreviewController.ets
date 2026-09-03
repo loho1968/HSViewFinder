@@ -65,6 +65,12 @@ export class CameraPreviewController {
       this.session.addInput(this.cameraInput);
       this.session.addOutput(this.previewOutput);
       await this.session.commitConfig();
+      try {
+        const previewRotation = this.previewOutput.getPreviewRotation();
+        this.previewOutput.setPreviewRotation(previewRotation, false);
+      } catch (error) {
+        console.warn(`Camera preview rotation before start failed: ${JSON.stringify(error)}`);
+      }
       await this.session.start();
       const photoSession = this.session as camera.PhotoSession;
       photoSession.setZoomRatio(requestedZoomRatio);
@@ -120,6 +126,18 @@ export class CameraPreviewController {
     } catch (error) {
       console.warn(`Camera zoom failed: ${JSON.stringify(error)}`);
       return false;
+    }
+  }
+
+  refreshPreviewRotation(): void {
+    if (!this.previewOutput) {
+      return;
+    }
+    try {
+      const previewRotation = this.previewOutput.getPreviewRotation();
+      this.previewOutput.setPreviewRotation(previewRotation, false);
+    } catch (error) {
+      console.warn(`Camera preview rotation refresh failed: ${JSON.stringify(error)}`);
     }
   }
 

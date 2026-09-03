@@ -1,15 +1,20 @@
 import { FrameRect, LensSimulation } from '../model/LensSpec';
 
 export class FovCalculator {
+  static fovFromSensor(sensorSizeMm: number, focalLengthMm: number): number {
+    return 2 * Math.atan(sensorSizeMm / (2 * focalLengthMm)) * 180 / Math.PI;
+  }
+
   static simulateLens(
     content: FrameRect,
     targetHorizontalFovDeg: number,
     targetVerticalFovDeg: number,
     phoneHorizontalFovDeg: number,
-    phoneVerticalFovDeg: number
+    phoneVerticalFovDeg: number,
+    normalizationScale: number = 1
   ): LensSimulation {
-    const widthRatio = FovCalculator.fovRatio(targetHorizontalFovDeg, phoneHorizontalFovDeg);
-    const heightRatio = FovCalculator.fovRatio(targetVerticalFovDeg, phoneVerticalFovDeg);
+    const widthRatio = FovCalculator.fovRatio(targetHorizontalFovDeg, phoneHorizontalFovDeg) * normalizationScale;
+    const heightRatio = FovCalculator.fovRatio(targetVerticalFovDeg, phoneVerticalFovDeg) * normalizationScale;
     const isFullyVisible = widthRatio <= 1 && heightRatio <= 1;
     const width = content.width * Math.min(widthRatio, 1);
     const height = content.height * Math.min(heightRatio, 1);
@@ -54,7 +59,7 @@ export class FovCalculator {
     return focalHalfFov * 360 / Math.PI;
   }
 
-  private static fovRatio(targetFovDeg: number, referenceFovDeg: number): number {
+  static fovRatio(targetFovDeg: number, referenceFovDeg: number): number {
     const target = targetFovDeg * Math.PI / 360;
     const reference = referenceFovDeg * Math.PI / 360;
     return Math.tan(target) / Math.tan(reference);
