@@ -15,6 +15,10 @@
     {
       "name": "permission_camera",
       "value": "用于提供实时取景和镜头视场模拟"
+    },
+    {
+      "name": "permission_location",
+      "value": "用于为照片记录拍摄位置和计算天体位置"
     }
   ]
 }

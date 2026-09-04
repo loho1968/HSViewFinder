@@ -1,6 +1,6 @@
 import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit';
 import { preferences } from '@kit.ArkData';
-import { display } from '@kit.ArkUI';
+import { display, router } from '@kit.ArkUI';
 import { CameraPreviewController } from '../camera/CameraPreviewController';
 import { HASSELBLAD_LENSES } from '../data/HasselbladLenses';
 import { FovCalculator } from '../geometry/FovCalculator';
@@ -455,6 +455,12 @@ struct Index {
             this.zoomListExpanded = !this.zoomListExpanded;
             this.lensListExpanded = false;
           });
+
+          Button('色温和日月')
+            .fontSize(12)
+            .backgroundColor('#F9D66B')
+            .fontColor('#18201B')
+            .onClick(() => router.pushUrl({ url: 'pages/Analysis' }));
         }
         .justifyContent(FlexAlign.Center)
         .width('100%');

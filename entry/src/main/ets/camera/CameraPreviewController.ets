@@ -1,6 +1,8 @@
 import { common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { camera } from '@kit.CameraKit';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
+import { CaptureLocation } from '../model/CaptureContext';
 
 export interface CameraPreviewInfo {
   cameraCount: number;
@@ -8,11 +10,19 @@ export interface CameraPreviewInfo {
   label: string;
 }
 
+export type PhotoSavedCallback = (photoAsset: photoAccessHelper.PhotoAsset) => void;
+
 export class CameraPreviewController {
   private cameraManager?: camera.CameraManager;
   private cameraInput?: camera.CameraInput;
   private previewOutput?: camera.PreviewOutput;
+  private photoOutput?: camera.PhotoOutput;
   private session?: camera.Session;
+  private photoSavedCallback?: PhotoSavedCallback;
+
+  setPhotoSavedCallback(callback: PhotoSavedCallback): void {
+    this.photoSavedCallback = callback;
+  }
 
   async start(context: common.BaseContext, surfaceId: string, preferredAspectRatio: number = 3 / 2,
     requestedZoomRatio: number = 1): Promise<CameraPreviewInfo> {
@@ -60,10 +70,18 @@ export class CameraPreviewController {
         }
       });
 
+      const photoProfile = capability.photoProfiles[0];
+      if (!photoProfile) {
+        throw new Error('当前摄像头没有可用的拍照 Profile。');
+      }
+      this.photoOutput = this.cameraManager.createPhotoOutput(photoProfile);
+      this.photoOutput.on('photoAssetAvailable', this.onPhotoAssetAvailable);
+
       this.session = this.cameraManager.createSession(camera.SceneMode.NORMAL_PHOTO);
       this.session.beginConfig();
       this.session.addInput(this.cameraInput);
       this.session.addOutput(this.previewOutput);
+      this.session.addOutput(this.photoOutput);
       await this.session.commitConfig();
       try {
         const previewRotation = this.previewOutput.getPreviewRotation();
@@ -105,14 +123,42 @@ export class CameraPreviewController {
       console.warn(`Camera preview output release failed: ${JSON.stringify(error)}`);
     }
     try {
+      this.photoOutput?.off('photoAssetAvailable', this.onPhotoAssetAvailable);
+      await this.photoOutput?.release();
+    } catch (error) {
+      console.warn(`Camera photo output release failed: ${JSON.stringify(error)}`);
+    }
+    try {
       await this.cameraInput?.close();
     } catch (error) {
       console.warn(`Camera input close failed: ${JSON.stringify(error)}`);
     }
     this.session = undefined;
     this.previewOutput = undefined;
+    this.photoOutput = undefined;
     this.cameraInput = undefined;
     this.cameraManager = undefined;
+  }
+
+  async capture(location?: CaptureLocation): Promise<void> {
+    if (!this.photoOutput || !this.session) {
+      throw new Error('相机尚未准备好，暂时不能拍照。');
+    }
+    try {
+      const setting: camera.PhotoCaptureSetting = {
+        quality: camera.QualityLevel.QUALITY_LEVEL_HIGH,
+        rotation: camera.ImageRotation.ROTATION_0,
+        mirror: false
+      };
+      if (location) {
+        setting.location = location;
+      }
+      await this.photoOutput.capture(setting);
+    } catch (error) {
+      const businessError = error as BusinessError;
+      const detail = businessError.message ?? businessError.code ?? '未知错误';
+      throw new Error(`拍照请求失败：${detail}`);
+    }
   }
 
   setZoomRatio(zoomRatio: number): boolean {
@@ -140,6 +186,16 @@ export class CameraPreviewController {
       console.warn(`Camera preview rotation refresh failed: ${JSON.stringify(error)}`);
     }
   }
+
+  private readonly onPhotoAssetAvailable = (error: BusinessError, photoAsset: photoAccessHelper.PhotoAsset): void => {
+    if (error && error.code !== 0) {
+      console.error(`Photo asset callback failed: ${error.code}`);
+      return;
+    }
+    if (photoAsset && this.photoSavedCallback) {
+      this.photoSavedCallback(photoAsset);
+    }
+  };
 
   private findBackCameraIndex(devices: camera.CameraDevice[]): number {
     for (let index = 0; index < devices.length; index++) {
